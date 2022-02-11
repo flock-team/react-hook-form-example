@@ -29,19 +29,17 @@ const Home: NextPage = () => {
     name: 'tasks',
   });
 
-  console.log(isSubmitting, isSubmitted, isSubmitSuccessful);
-
   const onSubmit = async (data: User) => {
     console.log(data);
 
     // 5秒の送信処理
-    const task = new Promise((resolve) => {
+    const saveData = new Promise((resolve) => {
       setTimeout(() => {
         resolve(true);
       }, 5000);
     });
 
-    await task;
+    return saveData;
   };
 
   const onInvalid = (erros: FieldErrors) => {
