@@ -1,25 +1,47 @@
 import type { NextPage } from 'next';
-import { FieldErrors, useForm } from 'react-hook-form';
+import { FieldErrors, useFieldArray, useForm } from 'react-hook-form';
+import CustomInput from '../components/custom-input';
 import Editor from '../components/editor';
 
 type User = {
   name: string;
+  title: string;
   profile: string;
   gender: 'male' | 'female';
   prefectures: string;
   hobbies: string[];
+  tasks: {
+    value: string;
+    limit: string;
+  }[];
 };
 
 const Home: NextPage = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting, isSubmitted, isSubmitSuccessful },
     control,
   } = useForm<User>();
 
-  const onSubmit = (data: User) => {
+  const { fields, remove, append } = useFieldArray({
+    control,
+    name: 'tasks',
+  });
+
+  console.log(isSubmitting, isSubmitted, isSubmitSuccessful);
+
+  const onSubmit = async (data: User) => {
     console.log(data);
+
+    // 5秒の送信処理
+    const task = new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(true);
+      }, 5000);
+    });
+
+    await task;
   };
 
   const onInvalid = (erros: FieldErrors) => {
@@ -43,6 +65,23 @@ const Home: NextPage = () => {
         </label>
         {errors.name?.type === 'required' && '必須入力です'}
         {errors.name?.type === 'maxLength' && '30文字以内にしてください'}
+      </div>
+
+      <div>
+        <label>
+          肩書き
+          <CustomInput
+            type="text"
+            required
+            autoComplete="organization-title"
+            register={register('title', {
+              required: true,
+              maxLength: 30,
+            })}
+          />
+        </label>
+        {errors.title?.type === 'required' && '必須入力です'}
+        {errors.title?.type === 'maxLength' && '30文字以内にしてください'}
       </div>
 
       <div>
@@ -117,7 +156,39 @@ const Home: NextPage = () => {
         </label>
       </div>
 
-      <button>送信</button>
+      <div>
+        <h2>タスク</h2>
+        {fields.map((field, index) => {
+          return (
+            <div key={field.id}>
+              <input
+                type="text"
+                required
+                {...register(`tasks.${index}.value`, {
+                  required: true,
+                })}
+                autoComplete="off"
+              />
+              <input
+                type="date"
+                {...register(`tasks.${index}.limit`)}
+                autoComplete="off"
+              />
+              <button type="button" onClick={() => remove(index)}>
+                削除
+              </button>
+            </div>
+          );
+        })}
+        <button type="button" onClick={() => append({})}>
+          追加
+        </button>
+      </div>
+
+      <hr />
+
+      {isSubmitting && <p>送信中...</p>}
+      <button disabled={isSubmitting}>送信</button>
     </form>
   );
 };
